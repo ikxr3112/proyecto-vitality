@@ -1,344 +1,319 @@
--- Tabla Paciente 
+-- Tabla Paciente
 CREATE TABLE Paciente (
     id_paciente SERIAL PRIMARY KEY,
+    nombre VARCHAR(30),
+    genero VARCHAR(15),
+    direccion VARCHAR(50),
     dpi VARCHAR(13),
-    direccion VARCHAR(200),
-    genero VARCHAR(10),
-    nombre VARCHAR(100),
     fecha_nacimiento DATE,
-    correo VARCHAR(100)
+    correo VARCHAR(50)
 );
 
--- Tabla Contacto_Medico 
+-- Tabla Contacto Médico
 CREATE TABLE Contacto_Medico (
-    carne VARCHAR(20) PRIMARY KEY,
-    correo VARCHAR(100),
-    telefono VARCHAR(10),
-    nombre_medico VARCHAR(100)
+    id_contacto SERIAL PRIMARY KEY,
+    carne VARCHAR(20),
+    telefono VARCHAR(20),
+    correo VARCHAR(50),
+    nombre_medico VARCHAR(30),
+    id_paciente INT REFERENCES Paciente(id_paciente) -- Relación con Paciente
 );
 
--- Tabla Historial_Clinico con clave foránea
+-- Tabla Historial Clínico
 CREATE TABLE Historial_Clinico (
     id_historial SERIAL PRIMARY KEY,
-    id_paciente INT,
-    enfermedades VARCHAR(500),
-    alergias VARCHAR(500),
-    cirugias VARCHAR(500),
-    inmunizaciones VARCHAR(500),
-    medicamentos VARCHAR(500),
-    resultados_examenes_fisicos VARCHAR(500),
-    FOREIGN KEY (id_paciente) REFERENCES Paciente(id_paciente)
+    enfermedades VARCHAR(100),
+    alergias VARCHAR(100),
+    cirugias VARCHAR(100),
+    inmunizaciones VARCHAR(100),
+    medicamentos VARCHAR(100),
+    resultados_examenes VARCHAR(100),
+    id_paciente INT REFERENCES Paciente(id_paciente) -- Relación con Paciente
 );
 
--- Tabla Seguro_Medico con clave foránea
+-- Tabla Seguro Médico
 CREATE TABLE Seguro_Medico (
-    no_poliza VARCHAR(50) PRIMARY KEY,
-    id_paciente INT,
-    compania_seguros VARCHAR(100),
-    reclamos_seguro_medico VARCHAR(500),
-    informacion_relevante VARCHAR(500),
-    FOREIGN KEY (id_paciente) REFERENCES Paciente(id_paciente)
+    id_seguro SERIAL PRIMARY KEY,
+    compania_seguros VARCHAR(255),
+    no_poliza VARCHAR(25),
+    reclamaciones VARCHAR(250),
+    informacion_relevante VARCHAR(250),
+    id_paciente INT REFERENCES Paciente(id_paciente) -- Relación con Paciente
 );
 
--- Tabla Laboratorios 
 CREATE TABLE Laboratorios (
     id_laboratorio SERIAL PRIMARY KEY,
-    nombre_clinica VARCHAR(100),
-    direccion_clinica VARCHAR(500),
+    nombre_clinica VARCHAR(60),
+    direccion_clinica VARCHAR(60),
     telefono_clinica VARCHAR(20),
-    nombre_encargado VARCHAR(100),
-    tipo_laboratorio VARCHAR(50)
+    responsable VARCHAR(255),
+    nombre_encargado VARCHAR(255),
+    tipo_laboratorio VARCHAR(255)
+);
+ALTER TABLE laboratorios  ALTER COLUMN nombre_clinica TYPE VARCHAR(100);
+
+-- Tabla de Relación entre Laboratorios y Análisis
+CREATE TABLE Laboratorio_Analisis (
+    id_laboratorio INT REFERENCES Laboratorios(id_laboratorio),
+    id_analisis INT REFERENCES Analisis(id_analisis),
+    PRIMARY KEY (id_laboratorio, id_analisis)
 );
 
--- Tabla Análisis con clave foránea
+-- Tabla Análisis
 CREATE TABLE Analisis (
     id_analisis SERIAL PRIMARY KEY,
-    id_paciente INT,
-    id_laboratorio INT,
-    tipo_analisis VARCHAR(500),
+    tipo_analisis VARCHAR(60),
     fecha_realizacion DATE,
-    monto NUMERIC(10, 2),
-    resultados VARCHAR(500),
-    FOREIGN KEY (id_paciente) REFERENCES Paciente(id_paciente),
-    FOREIGN KEY (id_laboratorio) REFERENCES Laboratorios(id_laboratorio)
-);
-ALTER TABLE Analisis ADD COLUMN estado VARCHAR(500);
+    resultados VARCHAR(250),
+    monto DECIMAL(10, 2),
+    id_paciente INT REFERENCES Paciente(id_paciente), -- Relación con Paciente
+    id_laboratorio INT REFERENCES Laboratorios(id_laboratorio), -- Relación con Laboratorios
+    estado VARCHAR(100)
+    );
+
+
 ALTER TABLE Analisis ADD COLUMN fecha_inicio DATE;
 ALTER TABLE Analisis ADD COLUMN fecha_fin DATE;
+ALTER TABLE Analisis ADD COLUMN ultima_fecha_venta DATE;
 
--- Tabla Factura con clave foránea
+-- Tabla Factura
 CREATE TABLE Factura (
     id_factura SERIAL PRIMARY KEY,
-    no_poliza VARCHAR(50),
     nit VARCHAR(20),
-    total NUMERIC(10, 2),
-    FOREIGN KEY (no_poliza) REFERENCES Seguro_Medico(no_poliza)
+    total DECIMAL(10, 2),
+    id_paciente INT REFERENCES Paciente(id_paciente), -- Relación con Paciente
+    id_seguro INT REFERENCES Seguro_Medico(id_seguro) -- Relación con Seguro Médico
 );
 
--- Tabla intermedia para la relación muchos a muchos entre Paciente y Contacto_Medico
-CREATE TABLE Paciente_Contacto_Medico (
-    id_paciente INT,
-    carne VARCHAR(20),
-    PRIMARY KEY (id_paciente, carne),
-    FOREIGN KEY (id_paciente) REFERENCES Paciente(id_paciente),
-    FOREIGN KEY (carne) REFERENCES Contacto_Medico(carne)
-);
 
--- Inserts existentes 
-INSERT INTO Paciente (id_paciente,dpi, direccion, genero, nombre, fecha_nacimiento, correo) 
-VALUES 
-(1,'1569784896325', 'ciudad quetzal, san juan sacatepequez', 'hombre', 'iker Escobar', '2006-05-31', 'ikeresc@gmail.com'),
-(2, '5896324789561', 'mixco, guatemala', 'mujer', 'paula rodriguez', '2000-11-12', 'paulette04@gmail.com'),
-(3, '2059784563218', 'san rafael, villa nueva', 'hombre', 'maynor escobar', '2000-11-05', 'maykkkesc@gmail.com'),
-(4, '1234567890123', 'ciudad de guatemala', 'hombre', 'Juan Pérez', '1995-09-15', 'juanperez@gmail.com'),
-(5, '9876543210987', 'antigua guatemala', 'mujer', 'María González', '1988-03-20', 'mariagonzalez@gmail.com'),
-(6, '4567890123456', 'quetzaltenango', 'hombre', 'Pedro López', '1976-07-10', 'pedrolopez@gmail.com'),
-(7, '7890123456789', 'flores, petén', 'mujer', 'Sofía Ramírez', '2002-12-03', 'sofiaramirez@gmail.com'),
-(8, '2345678901234', 'cobán, alta verapaz', 'hombre', 'Luis García', '1990-04-28', 'luisgarcia@gmail.com'),
-(9, '3456789012345', 'escuintla, escuintla', 'mujer', 'Ana Martínez', '1985-08-22', 'anamartinez@gmail.com'),
-(10, '8765432109876', 'chichicastenango', 'hombre', 'Carlos Hernández', '1979-01-05', 'carloshernandez@gmail.com');
-
-INSERT INTO Contacto_Medico (carne, correo, telefono, nombre_medico) 
+-- Insertar usuarios ficticios en la tabla Paciente
+INSERT INTO Paciente (nombre, genero, direccion, dpi, fecha_nacimiento, correo)
 VALUES
-('12345', 'juanperezz@gmail.com', '1234567890', 'Dr. Juan Pérez'),
-('67890', 'anastaciag@gmail.com', '0987654321', 'Dra. Ana Gómez'),
-('54321', 'pezcadoruiz@gmail.com', '1122334455', 'Dr. Carlos Ruiz'),
-('24680', 'luisramirez@gmail.com', '9876543210', 'Dr. Luis Ramírez'),
-('13579', 'mariagonzalez@gmail.com', '5544332211', 'Dra. María González'),
-('97531', 'pedromartinez@gmail.com', '9988776655', 'Dr. Pedro Martínez'),
-('86420', 'sofiaramirez@gmail.com', '6677889900', 'Dra. Sofía Ramírez'),
-('31415', 'carloshernandez@gmail.com', '2233445566', 'Dr. Carlos Hernández'),
-('27182', 'lauragarcia@gmail.com', '1111222233', 'Dra. Laura García'),
-('81920', 'joselopez@gmail.com', '4455667788', 'Dr. José López');
+    ('Ana Martínez', 'Femenino', 'Calle Principal, Ciudad A', '1234567890101', '1990-05-15', 'ana@example.com'),
+    ('Juan López', 'Masculino', 'Avenida Central, Ciudad B', '2345678901011', '1985-08-23', 'juan@example.com'),
+    ('María García', 'Femenino', 'Calle Secundaria, Ciudad C', '3456789010112', '1976-12-10', 'maria@example.com'),
+    ('Pedro Rodríguez', 'Masculino', 'Paseo Peatonal, Ciudad D', '4567890101123', '1995-02-28', 'pedro@example.com'),
+    ('Luisa Pérez', 'Femenino', 'Bulevar Principal, Ciudad E', '5678901011234', '1988-07-07', 'luisa@example.com'),
+    ('Carlos Sánchez', 'Masculino', 'Avenida Principal, Ciudad F', '6789010112345', '1979-09-03', 'carlos@example.com'),
+    ('Laura Hernández', 'Femenino', 'Calle Principal, Ciudad G', '7890101123456', '1992-04-19', 'laura@example.com'),
+    ('Miguel González', 'Masculino', 'Avenida Central, Ciudad H', '8901011234567', '1983-11-26', 'miguel@example.com'),
+    ('Sofía Díaz', 'Femenino', 'Calle Secundaria, Ciudad I', '9010112345678', '1998-08-14', 'sofia@example.com'),
+    ('Daniel Vargas', 'Masculino', 'Paseo Peatonal, Ciudad J', '0101123456789', '1972-03-30', 'daniel@example.com'),
+    ('Paola Ramírez', 'Femenino', 'Bulevar Principal, Ciudad K', '1011234567890', '1987-06-25', 'paola@example.com'),
+    ('Jorge Martínez', 'Masculino', 'Avenida Principal, Ciudad L', '1112345678901', '1993-09-17', 'jorge@example.com'),
+    ('Verónica Castro', 'Femenino', 'Calle Principal, Ciudad M', '1223456789012', '1980-12-03', 'veronica@example.com'),
+    ('Ricardo Ruiz', 'Masculino', 'Avenida Central, Ciudad N', '2334567890123', '1975-05-08', 'ricardo@example.com'),
+    ('Gabriela Sosa', 'Femenino', 'Calle Secundaria, Ciudad O', '3445678901234', '1990-02-12', 'gabriela@example.com');
 
-INSERT INTO Historial_Clinico (id_paciente, enfermedades, alergias, cirugias, inmunizaciones, medicamentos, resultados_examenes_fisicos) VALUES
-(1 ,'Artritis', 'Aspirina', 'Reemplazo de cadera', 'Vacuna Antigripal', 'Ibuprofeno', 'Movilidad reducida en la articulación afectada, No signos de infección'),
-(2 ,'Depresión', 'Ninguna', 'Ninguna', 'Vacuna Antidepresiva', 'Sertralina', 'Estado de ánimo estable, No signos de suicidio'),
-(3 ,'Gastritis', 'Lactosa', 'Ninguna', 'Vacuna contra la Acidez', 'Omeprazol', 'Digestión normal, No sangrado gastrointestinal'),
-(4 ,'Epilepsia', 'Ninguna', 'Lobectomía temporal', 'Vacuna contra la Epilepsia', 'Carbamazepina', 'Frecuencia de convulsiones reducida, No signos de epilepsia no controlada'),
-(5 ,'Cáncer de mama', 'Ninguna', 'Mastectomía radical', 'Vacuna contra el Cáncer', 'Tamoxifeno', 'No signos de recurrencia, No signos de metástasis'),
-(6 ,'Hipertensión', 'Ninguna', 'Ninguna', 'Vacuna contra la Hipertensión', 'Enalapril', 'Presión arterial controlada, No signos de complicaciones'),
-(7 ,'Diabetes tipo 2', 'Insulina', 'Bypass gástrico', 'Vacuna contra la Diabetes', 'Insulina, Metformina', 'Niveles de azúcar en sangre controlados, Pérdida de peso adecuada'),
-(8 ,'Asma', 'Polvo', 'Ninguna', 'Vacuna Antiasmática', 'Salbutamol, Beclometasona', 'Función pulmonar estable, No exacerbaciones recientes'),
-(9 ,'Osteoporosis', 'Ninguna', 'Ninguna', 'Vacuna Osteoporótica', 'Alendronato', 'Densidad ósea estable, No fracturas recientes'),
-(10 ,'Síndrome de intestino irritable', 'Ninguna', 'Ninguna', 'Vacuna Digestiva', 'Loperamida, Simeticona', 'Síntomas gastrointestinales controlados, No signos de inflamación');
+-- Insertar información ficticia en otras tablas relacionadas
+-- Para simplificar, se asignará información ficticia de manera aleatoria.
 
-INSERT INTO Seguro_Medico (no_poliza, id_paciente, compania_seguros, reclamos_seguro_medico, informacion_relevante) 
+-- Contacto Médico
+INSERT INTO Contacto_Medico (carne, telefono, correo, nombre_medico, id_paciente)
 VALUES
-('POL123456', 1, 'Seguros Vida S.A.', 'Reclamo por cirugía de rodilla en 2022', 'Cobertura completa en clínicas afiliadas'),
-('POL789012', 2, 'Salud Total Ltda.', 'Reclamo por tratamiento de cáncer en 2021', 'Descuento en medicinas genéricas'),
-('POL345678', 3, 'Aseguradora Nacional', 'Reclamo por fractura de brazo en 2020', 'Cobertura internacional limitada'),
-('POL654321', 4, 'Vida Segura S.A.', 'Reclamo por cirugía de cadera en 2023', 'Asistencia en viajes'),
-('POL987654', 5, 'Salud Familiar Ltda.', 'Reclamo por exámenes de laboratorio en 2022', 'Descuento en consultas médicas'),
-('POL321987', 6, 'Seguros Integrales', 'Reclamo por tratamiento de diabetes en 2021', 'Cobertura dental básica'),
-('POL654987', 7, 'Salud y Vida S.A.', 'Reclamo por hospitalización en 2023', 'Seguro de vida incluido'),
-('POL123789', 8, 'Vida Saludable Ltda.', 'Reclamo por tratamiento de hipertensión en 2022', 'Cobertura de emergencias'),
-('POL789456', 9, 'Aseguradora Familiar', 'Reclamo por cirugía ocular en 2021', 'Descuento en ópticas afiliadas'),
-('POL456123', 10, 'Seguros Médicos Integrales', 'Reclamo por tratamiento de asma en 2023', 'Cobertura en medicinas alternativas');
+    ('CM123', '555-1234', 'doctor1@example.com', 'Dr. González', 1),
+    ('CM456', '555-5678', 'doctor2@example.com', 'Dra. Ramírez', 2),
+    ('CM789', '555-9012', 'doctor3@example.com', 'Dr. Pérez', 3),
+    ('CM012', '555-3456', 'doctor4@example.com', 'Dra. García', 4),
+    ('CM345', '555-7890', 'doctor5@example.com', 'Dr. Martínez', 5),
+    ('CM678', '555-2345', 'doctor6@example.com', 'Dra. López', 6),
+    ('CM901', '555-6789', 'doctor7@example.com', 'Dr. Sánchez', 7),
+    ('CM234', '555-0123', 'doctor8@example.com', 'Dra. Hernández', 8),
+    ('CM567', '555-4567', 'doctor9@example.com', 'Dr. Vargas', 9),
+    ('CM890', '555-7890', 'doctor10@example.com', 'Dra. Díaz', 10),
+    ('CM123', '555-1234', 'doctor11@example.com', 'Dr. Ruiz', 11),
+    ('CM456', '555-5678', 'doctor12@example.com', 'Dra. Castro', 12),
+    ('CM789', '555-9012', 'doctor13@example.com', 'Dr. Ramírez', 13),
+    ('CM012', '555-3456', 'doctor14@example.com', 'Dra. Martínez', 14),
+    ('CM345', '555-7890', 'doctor15@example.com', 'Dr. Sosa', 15);
 
-INSERT INTO Laboratorios (nombre_clinica, direccion_clinica, telefono_clinica, nombre_encargado, tipo_laboratorio) 
+INSERT INTO Historial_Clinico (enfermedades, alergias, cirugias, inmunizaciones, medicamentos, resultados_examenes, id_paciente)
 VALUES
-('Laboratorios Análisis Clínicos', 'Zona 10, Ciudad de Guatemala', '23748956', 'Dr. Alberto López', 'Bioquímico'),
-('Laboratorios MedLab', 'Zona 1, Ciudad de Guatemala', '22345678', 'Dra. Gabriela Martínez', 'Microbiológico'),
-('Laboratorios Salud y Vida', 'Zona 9, Ciudad de Guatemala', '23659874', 'Dr. Mario Pérez', 'Hematológico'),
-('Laboratorios Clínicos Especializados', 'Zona 15, Ciudad de Guatemala', '24567892', 'Dra. Carolina Ruiz', 'Genético'),
-('Laboratorios BioAnálisis', 'Zona 7, Ciudad de Guatemala', '22659874', 'Dr. Luis García', 'Inmunológico'),
-('Laboratorios Central', 'Zona 11, Ciudad de Guatemala', '23748957', 'Dr. Ana Morales', 'Toxicología'),
-('Laboratorios Santa Fe', 'Zona 8, Ciudad de Guatemala', '22345679', 'Dr. Julio Fernández', 'Parasitología'),
-('Laboratorios MegaLab', 'Zona 5, Ciudad de Guatemala', '23659875', 'Dra. Sonia López', 'Química Clínica'),
-('Laboratorios Clínicos Avanzados', 'Zona 13, Ciudad de Guatemala', '24567893', 'Dra. Patricia González', 'Endocrinología'),
-('Laboratorios BioSalud', 'Zona 4, Ciudad de Guatemala', '22659875', 'Dr. Jorge Ramírez', 'Bacteriología');
+    ('Hipertensión', 'Penicilina', 'Apéndice', 'Vacuna contra la influenza', 'Ibuprofeno', 'Exámenes de sangre normales', 1),
+    ('Diabetes tipo 2', 'Ninguna', 'Cataratas', 'Vacuna contra el tétanos', 'Metformina', 'Niveles de glucosa elevados', 2),
+    ('Asma', 'Ninguna', 'Ninguna', 'Vacuna contra la varicela', 'Albuterol', 'Radiografía de tórax normal', 3),
+    ('Artritis reumatoide', 'Ninguna', 'Reemplazo de cadera', 'Vacuna contra el neumococo', 'Prednisona', 'Análisis de líquido sinovial', 4),
+    ('Cáncer de mama', 'Ninguna', 'Mastectomía', 'Vacuna contra la hepatitis B', 'Tamoxifeno', 'Biopsia confirmatoria', 5),
+    ('Enfermedad renal crónica', 'Ninguna', 'Trasplante renal', 'Vacuna contra la hepatitis A', 'Tacrolimus', 'Función renal normal', 6),
+    ('Depresión', 'Ninguna', 'Ninguna', 'Vacuna contra la fiebre amarilla', 'Sertralina', 'Evaluación psicológica normal', 7),
+    ('Enfermedad de Parkinson', 'Ninguna', 'Ninguna', 'Vacuna contra la influenza', 'Levodopa', 'Imágenes cerebrales normales', 8),
+    ('Gastritis crónica', 'Ninguna', 'Ninguna', 'Vacuna contra el tétanos', 'Omeprazol', 'Endoscopia gástrica normal', 9),
+    ('Hipotiroidismo', 'Ninguna', 'Ninguna', 'Vacuna contra la varicela', 'Levotiroxina', 'Niveles de hormona tiroidea bajos', 10),
+    ('Esquizofrenia', 'Ninguna', 'Ninguna', 'Vacuna contra la hepatitis B', 'Clozapina', 'Evaluación psiquiátrica normal', 11),
+    ('EPOC', 'Ninguna', 'Ninguna', 'Vacuna contra la influenza', 'Salbutamol', 'Pruebas de función pulmonar anormales', 12),
+    ('Síndrome del intestino irritable', 'Ninguna', 'Ninguna', 'Vacuna contra el neumococo', 'Loperamida', 'Colonoscopia normal', 13),
+    ('Hipotiroidismo', 'Ninguna', 'Ninguna', 'Vacuna contra la hepatitis A', 'Levotiroxina', 'Niveles de hormona tiroidea bajos', 14),
+    ('Hipertensión', 'Ninguna', 'Ninguna', 'Vacuna contra la fiebre amarilla', 'Losartán', 'Presión arterial elevada', 15);
 
-
-INSERT INTO Analisis (id_paciente, id_laboratorio, tipo_analisis, fecha_realizacion, monto, resultados, estado, fecha_inicio, fecha_fin) 
+-- Seguro Médico
+INSERT INTO Seguro_Medico (compania_seguros, no_poliza, reclamaciones, informacion_relevante, id_paciente)
 VALUES
-(1, 1, 'analisis de sangre', '2023-04-01', 250.00, 'Valores dentro de rangos normales', 'completado', '2023-01-01', '2023-12-31'),
-(2, 2, 'analisis de orina', '2023-05-15', 300.00, 'Colesterol alto, Triglicéridos elevados', 'no completado', '2023-01-01', '2023-12-31'),
-(3, 3, 'analisis de heces', '2023-06-20', 150.00, 'Niveles de glucosa elevados', 'completado', '2023-01-01', '2023-12-31'),
-(4, 4, 'cultivos microbiologicos', '2023-07-10', 500.00, 'Mutación en el gen BRCA1', 'no completado', '2023-01-01', '2023-12-31'),
-(5, 5, 'Prueba de diagnostico molecular', '2023-08-05', 200.00, 'Anticuerpos presentes', 'no completado', '2023-01-01', '2023-12-31'),
-(6, 1, 'pruebas de imagenologia', '2023-09-12', 250.00, 'Valores dentro de rangos normales', 'completado', '2023-01-01', '2023-12-31'),
-(7, 2, 'Ppruebas de diagnostico especializado', '2023-10-08', 300.00, 'Colesterol dentro de límites aceptables', 'no completado', '2023-01-01', '2023-12-31'),
-(8, 3, 'Prueba de alergia', '2023-11-01', 150.00, 'Niveles de glucosa normales', 'completado', '2023-01-01', '2023-12-31'),
-(9, 4, 'Pruebas de función Hroide', '2023-12-20', 500.00, 'No se encontraron mutaciones', 'no completado', '2023-01-01', '2023-12-31'),
-(10, 5, 'Prueba de ETS', '2023-11-30', 200.00, 'Anticuerpos ausentes', 'completado', '2023-01-01', '2023-12-31');
+    ('Seguros Médicos ABC', 'SM123456', 'Ninguna', 'Ninguna', 1),
+    ('Seguros XYZ', 'SM987654', 'Ninguna', 'Ninguna', 2),
+    ('Seguros de Salud DEF', 'SM135792', 'Ninguna', 'Ninguna', 3),
+    ('Seguros GHI', 'SM246801', 'Ninguna', 'Ninguna', 4),
+    ('Seguros JKL', 'SM987654', 'Ninguna', 'Ninguna', 5),
+    ('Seguros MNO', 'SM012345', 'Ninguna', 'Ninguna', 6),
+    ('Seguros de Vida PQR', 'SM987654', 'Ninguna', 'Ninguna', 7),
+    ('Seguros STU', 'SM123456', 'Ninguna', 'Ninguna', 8),
+    ('Seguros de Salud VWX', 'SM098765', 'Ninguna', 'Ninguna', 9),
+    ('Seguros YZA', 'SM135792', 'Ninguna', 'Ninguna', 10),
+    ('Seguros BCD', 'SM246801', 'Ninguna', 'Ninguna', 11),
+    ('Seguros EFG', 'SM987654', 'Ninguna', 'Ninguna', 12),
+    ('Seguros HIJ', 'SM012345', 'Ninguna', 'Ninguna', 13),
+    ('Seguros KLM', 'SM987654', 'Ninguna', 'Ninguna', 14),
+    ('Seguros de Vida NOP', 'SM123456', 'Ninguna', 'Ninguna', 15);
 
 
-
-
-INSERT INTO Factura (no_poliza, nit, total) 
+INSERT INTO Analisis (tipo_analisis, fecha_realizacion, resultados, monto, id_paciente, id_laboratorio, estado, fecha_inicio, fecha_fin, ultima_fecha_venta)
 VALUES
-('POL123456', '123456789', 1000.00),
-('POL789012', '987654321', 1500.00),
-('POL345678', '456123789', 1200.00),
-('POL654321', '789456123', 1800.00),
-('POL987654', '321654987', 900.00),
-('POL321987', '654987321', 1100.00),
-('POL654987', '789123456', 1300.00),
-('POL123789', '321987654', 1400.00),
-('POL789456', '987321654', 1600.00),
-('POL456123', '123789456', 1700.00);
+    ('Análisis de sangre', '2023-01-05', 'Valores dentro de los rangos normales', 150.00, 1, 1, 'completado', '2023-01-01', '2023-12-31', '2023-01-05'),
+    ('Radiografía de tórax', '2023-02-10', 'Sin anormalidades detectadas', 200.00, 2, 2, 'no completado', '2023-01-01', '2023-12-31', '2023-02-10'),
+    ('Tomografía computarizada', '2023-03-15', 'Presencia de lesiones en el pulmón izquierdo', 300.00, 3, 3, 'completado', '2023-01-01', '2023-12-31', '2023-03-15'),
+    ('Resonancia magnética', '2023-04-20', 'Evidencia de deterioro en las articulaciones', 400.00, 4, 4, 'no completado', '2023-01-01', '2023-12-31', '2023-04-20'),
+    ('Ecografía abdominal', '2023-05-25', 'Presencia de cálculos biliares', 250.00, 5, 5, 'completado', '2023-01-01', '2023-12-31', '2023-05-25'),
+    ('Electrocardiograma', '2023-06-30', 'Ritmo cardíaco regular', 180.00, 6, 6, 'no completado', '2023-01-01', '2023-12-31', '2023-06-30'),
+    ('Colonoscopia', '2023-07-05', 'Presencia de pólipos benignos', 350.00, 7, 7, 'completado', '2023-01-01', '2023-12-31', '2023-07-05'),
+    ('Mamografía', '2023-08-10', 'Nódulos mamarios benignos', 220.00, 8, 8, 'no completado', '2023-01-01', '2023-12-31', '2023-08-10'),
+    ('Análisis de orina', '2023-09-15', 'Presencia de proteínas en la orina', 120.00, 9, 9, 'completado', '2023-01-01', '2023-12-31', '2023-09-15'),
+    ('Hemograma completo', '2023-10-20', 'Recuento de células sanguíneas normal', 170.00, 10, 10, 'no completado', '2023-01-01', '2023-12-31', '2023-10-20'),
+    ('Biopsia de piel', '2023-11-25', 'Células cutáneas normales', 280.00, 11, 11, 'completado', '2023-01-01', '2023-12-31', '2023-11-25'),
+    ('Papanicolaou', '2023-12-30', 'Células cervicales normales', 190.00, 12, 12, 'no completado', '2023-01-01', '2023-12-31', '2023-12-30'),
+    ('Prueba de glucosa en sangre', '2024-01-05', 'Niveles de glucosa elevados', 160.00, 13, 13, 'completado', '2023-01-01', '2023-12-31', '2024-01-05'),
+    ('Análisis de líquido cefalorraquídeo', '2024-02-10', 'Presencia de células inflamatorias', 370.00, 14, 14, 'no completado', '2023-01-01', '2023-12-31', '2024-02-10'),
+    ('Prueba de función renal', '2024-03-15', 'Función renal dentro de los límites normales', 250.00, 15, 15, 'completado', '2023-01-01', '2023-12-31', '2024-03-15');
 
-INSERT INTO Paciente_Contacto_Medico (id_paciente, carne) 
+
+
+-- Laboratorios
+INSERT INTO Laboratorios (nombre_clinica, direccion_clinica, telefono_clinica, responsable, nombre_encargado, tipo_laboratorio)
 VALUES
-(1, '12345'),
-(2, '67890'),
-(3, '54321'),
-(4, '24680'),
-(5, '13579'),
-(6, '97531'),
-(7, '86420'),
-(8, '31415'),
-(9, '27182'),
-(10, '81920');
+    ('Laboratorio Médico ABC', 'Calle Principal 123, Ciudad A', '555-1234', 'Dr. López', 'María Rodríguez', 'Laboratorio clínico'),
+    ('Centro de Imágenes XYZ', 'Avenida Central 456, Ciudad B', '555-5678', 'Dra. Martínez', 'Carlos Pérez', 'Centro de diagnóstico por imágenes'),
+    ('Clínica Diagnóstico DEF', 'Calle Secundaria 789, Ciudad C', '555-9012', 'Dr. Sánchez', 'Laura Gómez', 'Centro de diagnóstico médico'),
+    ('Laboratorio Clínico GHI', 'Paseo Peatonal 1011, Ciudad D', '555-3456', 'Dra. García', 'Miguel Torres', 'Laboratorio de análisis clínicos'),
+    ('Centro de Imágenes JKL', 'Bulevar Principal 1213, Ciudad E', '555-7890', 'Dr. González', 'Sofía López', 'Centro de diagnóstico por imágenes'),
+    ('Clínica de Análisis MNO', 'Avenida Principal 1415, Ciudad F', '555-2345', 'Dra. Ramírez', 'Daniel García', 'Laboratorio de análisis médicos'),
+    ('Laboratorio Biomédico PQR', 'Calle Principal 1617, Ciudad G', '555-6789', 'Dr. Pérez', 'Paola Martínez', 'Centro de análisis biológicos'),
+    ('Centro de Diagnóstico STU', 'Avenida Central 1819, Ciudad H', '555-0123', 'Dra. Hernández', 'Jorge González', 'Centro de diagnóstico clínico'),
+    ('Laboratorio de Investigación VWX', 'Calle Secundaria789, Ciudad I', '555-4567', 'Dra. Díaz', 'Verónica Castro', 'Laboratorio de investigación biomédica'),
+    ('Centro de Diagnóstico YZA', 'Paseo Peatonal 2021, Ciudad J', '555-8901', 'Dr. Vargas', 'Ricardo Ruiz', 'Centro de diagnóstico clínico'),
+    ('Laboratorio Clínico BCD', 'Bulevar Principal 2223, Ciudad K', '555-2345', 'Dra. Castro', 'Gabriela Sosa', 'Laboratorio de análisis clínicos'),
+    ('Centro de Imágenes EFG', 'Calle Principal 2425, Ciudad L', '555-6789', 'Dr. Ramírez', 'Ana Martínez', 'Centro de diagnóstico por imágenes'),
+    ('Clínica de Análisis HIJ', 'Avenida Central 2627, Ciudad M', '555-0123', 'Dra. Martínez', 'Juan López', 'Laboratorio de análisis médicos'),
+    ('Laboratorio Médico KLM', 'Calle Secundaria 2829, Ciudad N', '555-4567', 'Dr. Sosa', 'María García', 'Laboratorio clínico'),
+    ('Centro de Imágenes NOP', 'Paseo Peatonal 3031, Ciudad O', '555-8901', 'Dra. Ramírez', 'Pedro Rodríguez', 'Centro de diagnóstico por imágenes');
+   
+   -- Insertar datos ficticios en la tabla Factura
+INSERT INTO Factura (nit, total, id_paciente, id_seguro)
+VALUES
+    ('123456789', 150.00, 1, NULL),
+    ('987654321', 200.00, 2, 1),
+    ('135792468', 300.00, 3, NULL),
+    ('246801357', 400.00, 4, 2),
+    ('987654321', 250.00, 5, NULL),
+    ('123456789', 180.00, 6, 3),
+    ('987654321', 220.00, 7, NULL),
+    ('135792468', 350.00, 8, 4),
+    ('246801357', 120.00, 9, NULL),
+    ('987654321', 170.00, 10, 5),
+    ('123456789', 280.00, 11, 1),
+    ('987654321', 190.00, 12, NULL),
+    ('135792468', 160.00, 13, 2),
+    ('246801357', 370.00, 14, NULL),
+    ('987654321', 250.00, 15, 3);
 
---a
-SELECT *
+   
+   --A
+   SELECT *
 FROM Analisis
-WHERE EXTRACT(MONTH FROM fecha_realizacion) = 5;
-
---b
+WHERE EXTRACT(MONTH FROM fecha_realizacion) = 1;
+--B
 SELECT tipo_analisis, COUNT(*) AS veces_contratado
 FROM Analisis
 GROUP BY tipo_analisis;
 
---c
+--C
 SELECT *
 FROM Analisis
 WHERE estado != 'completado';
+--D
+SELECT a.tipo_analisis, l.responsable
+FROM Analisis a
+JOIN Laboratorios l ON a.id_laboratorio = l.id_laboratorio;
+--E
+SELECT l.nombre_clinica, a.tipo_analisis, COUNT(*) AS veces_contratado
+FROM Analisis a
+JOIN Laboratorios l ON a.id_laboratorio = l.id_laboratorio
+GROUP BY l.nombre_clinica, a.tipo_analisis
+ORDER BY COUNT(*) DESC
+LIMIT 1;
+--F
+SELECT SUM(monto) AS monto_total
+FROM Analisis
+WHERE estado = 'completado' 
+  AND fecha_realizacion BETWEEN '2023-01-01'AND '2023-12-31'
+  AND id_paciente = 1;
 
---d
-SELECT CM.nombre_medico AS profesional_encargado,
-       A.tipo_analisis AS servicio_realizado
-FROM Analisis A
-JOIN Laboratorios L ON A.id_laboratorio = L.id_laboratorio
-JOIN Contacto_Medico CM ON L.nombre_encargado = CM.nombre_medico;
-
---e
-WITH ServiciosPorClinica AS (
-    SELECT L.nombre_clinica, A.tipo_analisis, COUNT(*) AS total_contratado
-    FROM Analisis A
-    JOIN Laboratorios L ON A.id_laboratorio = L.id_laboratorio
-    GROUP BY L.nombre_clinica, A.tipo_analisis
-),
-RangoServiciosPorClinica AS (
-    SELECT nombre_clinica, tipo_analisis, total_contratado,
-           RANK() OVER(PARTITION BY nombre_clinica ORDER BY total_contratado DESC) AS rango
-    FROM ServiciosPorClinica
-)
-SELECT nombre_clinica, tipo_analisis, total_contratado
-FROM RangoServiciosPorClinica
-WHERE rango = 1;
-
---f
-SELECT SUM(A.monto) AS monto_total
-FROM Analisis A
-WHERE A.fecha_realizacion BETWEEN '2023-01-01' AND '2023-12-31';
-
---g
-SELECT 
-    DATE_TRUNC('month', fecha_realizacion) AS mes,
-    COUNT(*) AS cantidad_servicios
-FROM 
-    Analisis
-WHERE 
-    resultados IS NOT NULL
-GROUP BY 
-    mes
-ORDER BY 
-    mes;
-   
---h
-SELECT
-    SUM(CASE WHEN Factura.no_poliza IS NULL THEN Analisis.monto ELSE 0 END) AS monto_pagado_cliente,
-    SUM(CASE WHEN Factura.no_poliza IS NOT NULL THEN Analisis.monto ELSE 0 END) AS monto_pagado_seguro
-FROM
-    Analisis
-LEFT JOIN Seguro_Medico ON Analisis.id_paciente = Seguro_Medico.id_paciente
-LEFT JOIN Factura ON Seguro_Medico.no_poliza = Factura.no_poliza;
-
---i
-WITH MontosTotales AS (
-    SELECT
-        SUM(CASE WHEN Factura.no_poliza IS NULL THEN Analisis.monto ELSE 0 END) AS monto_cliente,
-        SUM(CASE WHEN Factura.no_poliza IS NOT NULL THEN Analisis.monto ELSE 0 END) AS monto_seguro
-    FROM
-        Analisis
-    LEFT JOIN Seguro_Medico ON Analisis.id_paciente = Seguro_Medico.id_paciente
-    LEFT JOIN Factura ON Seguro_Medico.no_poliza = Factura.no_poliza
-    WHERE
-        Analisis.fecha_realizacion BETWEEN '2024-01-01' AND '2024-12-31'
-)
-SELECT
-    CASE WHEN monto_cliente + monto_seguro = 0 THEN 0 ELSE (monto_cliente / (monto_cliente + monto_seguro)) * 100 END AS porcentaje_cliente,
-    CASE WHEN monto_cliente + monto_seguro = 0 THEN 0 ELSE (monto_seguro / (monto_cliente + monto_seguro)) * 100 END AS porcentaje_seguro
-FROM
-    MontosTotales;
-   
---j
-SELECT 
-    Paciente.nombre AS nombre_paciente,
-    Analisis.fecha_realizacion AS fecha_completado,
-    Analisis.monto,
-    CASE 
-        WHEN Paciente_Contacto_Medico.carne IS NOT NULL THEN 'Referido por médico'
-        ELSE 'No referido'
-    END AS referido_por_medico
-FROM 
-    Analisis
-JOIN 
-    Paciente ON Analisis.id_paciente = Paciente.id_paciente
-LEFT JOIN 
-    Paciente_Contacto_Medico ON Analisis.id_paciente = Paciente_Contacto_Medico.id_paciente;
-
- --k
-ALTER TABLE Analisis
-ALTER COLUMN monto TYPE NUMERIC(12, 2);
-
+--G
+SELECT EXTRACT(MONTH FROM fecha_realizacion) AS mes, COUNT(*) AS cantidad_servicios_completados
+FROM Analisis
+WHERE estado = 'completado'
+GROUP BY EXTRACT(MONTH FROM fecha_realizacion);
+--H
+SELECT SUM(CASE WHEN id_seguro IS NULL THEN total ELSE 0 END) AS monto_pagado_cliente,
+       SUM(CASE WHEN id_seguro IS NOT NULL THEN total ELSE 0 END) AS monto_pagado_seguro
+FROM Factura;
+--I
+SELECT (SUM(CASE WHEN id_seguro IS NULL THEN total ELSE 0 END) / SUM(total)) * 100 AS porcentaje_pagado_cliente,
+       (SUM(CASE WHEN id_seguro IS NOT NULL THEN total ELSE 0 END) / SUM(total)) * 100 AS porcentaje_pagado_seguro
+FROM Factura
+WHERE id_paciente IN (
+    SELECT id_paciente
+    FROM Analisis
+    WHERE fecha_realizacion BETWEEN '2023-01-01' AND '2023-12-31'
+);
+--J
+SELECT p.nombre, a.fecha_realizacion, a.monto, 
+       CASE WHEN cm.nombre_medico IS NOT NULL THEN 'Referido por médico' ELSE 'No referido por médico' END AS referencia_medica
+FROM Analisis a
+JOIN Paciente p ON a.id_paciente = p.id_paciente
+LEFT JOIN Contacto_Medico cm ON p.id_paciente = cm.id_paciente;
+--K
 UPDATE Analisis
 SET monto = monto * 1.02;
-
---l
-
+--L
 UPDATE Analisis
 SET tipo_analisis = UPPER(tipo_analisis);
-
-
---m
+--M
 UPDATE Analisis
 SET estado = 'inactivo'
-WHERE id_analisis = 4;
+WHERE id_analisis = 1;
 
 
---n
-SELECT MAX(fecha_realizacion) AS ultima_fecha
+--N
+SELECT MAX(fecha_realizacion) AS ultima_fecha_venta
 FROM Analisis
-WHERE tipo_analisis = 'analisis de sangre';
+WHERE tipo_analisis = tipo_analisis ;
 
---o
-SELECT MAX(fecha_realizacion) AS fecha_mas_reciente
-FROM Analisis;
+--O
+SELECT tipo_analisis, MAX(fecha_inicio  - fecha_fin) AS tiempo_tardado
+FROM Analisis
+GROUP BY tipo_analisis;
 
---p
-SELECT nombre_medico
-FROM (
-    SELECT nombre_medico, COUNT(*) AS cantidad_referidos
-    FROM Contacto_Medico
-    GROUP BY nombre_medico
-    ORDER BY cantidad_referidos DESC
-    LIMIT 1
-) AS medico_con_mas_referidos;
+--P
+SELECT cm.nombre_medico, COUNT(*) AS cantidad_referidos
+FROM Contacto_Medico cm
+GROUP BY cm.nombre_medico
+ORDER BY COUNT(*) DESC
+LIMIT 1;
 
---q
-SELECT no_poliza
-FROM (
-    SELECT no_poliza, COUNT(*) AS cantidad_utilizada
-    FROM Factura
-    GROUP BY no_poliza
-    ORDER BY cantidad_utilizada DESC
-    LIMIT 1
-) AS seguro_mas_utilizado;
+--Q
+SELECT sm.compania_seguros, COUNT(*) AS veces_utilizado
+FROM Seguro_Medico sm
+GROUP BY sm.compania_seguros
+ORDER BY COUNT(*) DESC
+LIMIT 1;
 
 --para eliminar tablas
 DROP TABLE  analisis, contacto_medico, factura, historial_clinico, laboratorios, paciente, paciente_contacto_medico, seguro_medico ;
-
