@@ -224,47 +224,55 @@ VALUES
     ('987654321', 250.00, 15, 3);
 
    
-   --A
+--A  Realizar una consulta para obtener los servicios proveidos en enero de cualquier año
    SELECT *
 FROM Analisis
 WHERE EXTRACT(MONTH FROM fecha_realizacion) = 1;
---B
+
+--B Realizar una consulta donde me indique las veces que se ha contratado cada servicio
 SELECT tipo_analisis, COUNT(*) AS veces_contratado
 FROM Analisis
 GROUP BY tipo_analisis;
 
---C
+--C Realizar una consulta donde me indique los servicios cuyo estado no sea completado
 SELECT *
 FROM Analisis
 WHERE estado != 'completado';
---D
+
+--D Realizar una consulta indicando los servicios/pruebas/examenes realizados por cada
 SELECT a.tipo_analisis, l.responsable
 FROM Analisis a
 JOIN Laboratorios l ON a.id_laboratorio = l.id_laboratorio;
---E
+
+--E Indicar cual es el servicio más vendido por clínica
 SELECT l.nombre_clinica, a.tipo_analisis, COUNT(*) AS veces_contratado
 FROM Analisis a
 JOIN Laboratorios l ON a.id_laboratorio = l.id_laboratorio
 GROUP BY l.nombre_clinica, a.tipo_analisis
 ORDER BY COUNT(*) DESC
 LIMIT 1;
---F
+
+--F  Indicar el monto total de los servicios completados por un rango de fechas
 SELECT SUM(monto) AS monto_total
 FROM Analisis
 WHERE estado = 'completado' 
   AND fecha_realizacion BETWEEN '2023-01-01'AND '2023-12-31'
   AND id_paciente = 1;
 
---G
+--G Realizar una consulta que devuelva la canHdad de servicios completados por mes
 SELECT EXTRACT(MONTH FROM fecha_realizacion) AS mes, COUNT(*) AS cantidad_servicios_completados
 FROM Analisis
 WHERE estado = 'completado'
 GROUP BY EXTRACT(MONTH FROM fecha_realizacion);
---H
+
+--H  Realizar una consulta que devuelva el monto de los servicios divididos en montos pagados 
+--por el cliente y montos pagados por el seguro
 SELECT SUM(CASE WHEN id_seguro IS NULL THEN total ELSE 0 END) AS monto_pagado_cliente,
        SUM(CASE WHEN id_seguro IS NOT NULL THEN total ELSE 0 END) AS monto_pagado_seguro
 FROM Factura;
---I
+
+--I  Realizar una consulta del porcentaje pagado por el paciente y el porcentaje pagado por
+-- los seguros en un rango de fechas
 SELECT (SUM(CASE WHEN id_seguro IS NULL THEN total ELSE 0 END) / SUM(total)) * 100 AS porcentaje_pagado_cliente,
        (SUM(CASE WHEN id_seguro IS NOT NULL THEN total ELSE 0 END) / SUM(total)) * 100 AS porcentaje_pagado_seguro
 FROM Factura
@@ -273,42 +281,47 @@ WHERE id_paciente IN (
     FROM Analisis
     WHERE fecha_realizacion BETWEEN '2023-01-01' AND '2023-12-31'
 );
---J
+
+--J  Realice un resumen de los servicios indicando para ello el nombre del paciente, la fecha
+-- de completado, el monto y si viene referido por algun médico o no
 SELECT p.nombre, a.fecha_realizacion, a.monto, 
        CASE WHEN cm.nombre_medico IS NOT NULL THEN 'Referido por médico' ELSE 'No referido por médico' END AS referencia_medica
 FROM Analisis a
 JOIN Paciente p ON a.id_paciente = p.id_paciente
 LEFT JOIN Contacto_Medico cm ON p.id_paciente = cm.id_paciente;
---K
+
+--K  Actualizar el valor de los servicios en un 2%
 UPDATE Analisis
 SET monto = monto * 1.02;
---L
+
+--L Actualizar el nombre de los servicios agregando el nombre en mayúsculas 
+--(todo el nombre)
 UPDATE Analisis
 SET tipo_analisis = UPPER(tipo_analisis);
---M
+
+--M Inactivar un servicio en específico
 UPDATE Analisis
 SET estado = 'inactivo'
 WHERE id_analisis = 1;
 
-
---N
+--N  Indicar la ulHma fecha en la que se vendio un servicio específico
 SELECT MAX(fecha_realizacion) AS ultima_fecha_venta
 FROM Analisis
 WHERE tipo_analisis = tipo_analisis ;
 
---O
+--O Realizar una consulta que indique el Hempo más tardado de una prueba
 SELECT tipo_analisis, MAX(fecha_inicio  - fecha_fin) AS tiempo_tardado
 FROM Analisis
 GROUP BY tipo_analisis;
 
---P
+--P Realizar una consulta que me indique el nombre del doctor que tenga más referidos
 SELECT cm.nombre_medico, COUNT(*) AS cantidad_referidos
 FROM Contacto_Medico cm
 GROUP BY cm.nombre_medico
 ORDER BY COUNT(*) DESC
 LIMIT 1;
 
---Q
+--Q  Indicar una consulta que devuelva el seguro más utilizadox
 SELECT sm.compania_seguros, COUNT(*) AS veces_utilizado
 FROM Seguro_Medico sm
 GROUP BY sm.compania_seguros
@@ -317,3 +330,5 @@ LIMIT 1;
 
 --para eliminar tablas
 DROP TABLE  analisis, contacto_medico, factura, historial_clinico, laboratorios, paciente, paciente_contacto_medico, seguro_medico ;
+
+
